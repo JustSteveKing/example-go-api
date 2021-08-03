@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/JustSteveKing/example-go-api/pkg/kernel"
+	"github.com/JustSteveKing/example-go-api/pkg/routes"
 
 	"github.com/joho/godotenv"
 )
@@ -16,6 +17,7 @@ func main() {
 	app := kernel.Boot()
 
 	// Load our Routes
+	routes.Load(app)
 
 	// Run our server
 	go func() {

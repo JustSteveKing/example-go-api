@@ -2,6 +2,7 @@ package kernel
 
 import (
 	"context"
+	"encoding/json"
 	"net/http"
 	"os"
 	"os/signal"
@@ -20,6 +21,22 @@ type Application struct {
 	Router *mux.Router
 	Logger *zap.Logger
 	Config *config.Config
+}
+
+// Respond - simplify responding from the API
+func (app *Application) Respond(response http.ResponseWriter, request *http.Request, data interface{}, status int) {
+	response.WriteHeader(status)
+
+	response.Header().Add("Content-Type", app.Config.HTTP.Content)
+
+	if data != nil {
+		err := json.NewEncoder(response).Encode(data)
+
+		if err != nil {
+			app.Logger.Fatal(err.Error())
+			panic(err)
+		}
+	}
 }
 
 // Boot - Lets boot our Application with stuff.
