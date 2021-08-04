@@ -45,21 +45,19 @@ func HandlePhotosExternal(app *kernel.Application) http.HandlerFunc {
 				"https://jsonplaceholder.typicode.com/photos",
 				&waitGroup,
 			)
+
+			if apiError != nil {
+				app.Logger.Fatal(apiError.Error())
+				panic(apiError)
+			}
 		}()
 		waitGroup.Wait()
-
-		if apiError != nil {
-			app.Logger.Fatal(apiError.Error())
-			panic(apiError)
-		}
 
 		body, readError := ioutil.ReadAll(response.Body)
 		if readError != nil {
 			app.Logger.Fatal(readError.Error())
 			panic(readError)
 		}
-
-		app.Logger.Info(string(body))
 
 		var photos []photo
 
