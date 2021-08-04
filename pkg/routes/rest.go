@@ -1,7 +1,8 @@
 package routes
 
 import (
-	"fmt"
+	"encoding/json"
+	"io/ioutil"
 	"net/http"
 	"sync"
 
@@ -22,6 +23,14 @@ func Load(app *kernel.Application) {
 
 func HandlePhotosExternal(app *kernel.Application) http.HandlerFunc {
 	service := photos.NewService()
+
+	type photo struct {
+		AlbumID      int    `json:"albumId"`
+		ID           int    `json:"id"`
+		Title        string `json:"title"`
+		URL          string `json:"url"`
+		ThumbnailURL string `json:"thumbnailUrl"`
+	}
 
 	return func(wr http.ResponseWriter, request *http.Request) {
 		var (
@@ -44,7 +53,27 @@ func HandlePhotosExternal(app *kernel.Application) http.HandlerFunc {
 			panic(apiError)
 		}
 
-		fmt.Println(response)
+		body, readError := ioutil.ReadAll(response.Body)
+		if readError != nil {
+			app.Logger.Fatal(readError.Error())
+			panic(readError)
+		}
+
+		app.Logger.Info(string(body))
+
+		var photos []photo
+
+		if unmarshalErr := json.Unmarshal([]byte(body), &photos); unmarshalErr != nil {
+			app.Logger.Fatal(unmarshalErr.Error())
+			panic(unmarshalErr)
+		}
+
+		app.Respond(
+			wr,
+			request,
+			photos,
+			http.StatusOK,
+		)
 	}
 }
 
